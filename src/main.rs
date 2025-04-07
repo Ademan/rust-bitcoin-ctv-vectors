@@ -65,7 +65,11 @@ fn random_bytes_lt<R: RngCore>(rand: &mut R, length: &RangeInclusive<usize>, max
         return result;
     }
 
-    let length = random_range(rand, length) % (*max_bytes + 1);
+    // Hacky, but should reduce the likelihood of generating lots of zero-length outputs on
+    // transactions, without biasing the average transaction size too much, hopefully.
+    let range = (*max_bytes + length.end() + 1) / 2;
+
+    let length = random_range(rand, length) % (range + 1);
 
     *max_bytes = max_bytes.saturating_sub(length);
 
